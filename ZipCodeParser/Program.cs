@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Newtonsoft.Json;
 
 namespace ZipCodeParser
@@ -17,11 +18,13 @@ namespace ZipCodeParser
             var inputJson = File.ReadAllText(inputFilePath);
             var features = JsonConvert.DeserializeObject<Root>(inputJson).features;
 
+            var counter = 0;
+
             foreach (var feature in features)
             {
                 var region = new ZipRegion
                 {
-                    code = feature.properties.zcta5_code,
+                    code = feature.properties.zcta5_code.Single(),
                 };
 
                 var geometryJson = JsonConvert.SerializeObject(feature.geometry);
@@ -47,6 +50,7 @@ namespace ZipCodeParser
 
                 var json = JsonConvert.SerializeObject(region);
                 File.WriteAllText(Path.Combine(outputDirectoryPath, $"{region.code}.json"), json);
+                Console.WriteLine($"{++counter}/{features.Count}");
             }
         }
     }
@@ -61,7 +65,7 @@ namespace ZipCodeParser
 
     public class Properties
     {
-        public string zcta5_code { get; set; }
+        public List<string> zcta5_code { get; set; }
     }
 
     public class Feature
